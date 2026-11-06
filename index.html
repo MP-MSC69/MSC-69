@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#0F172A">
   <meta name="msapplication-navbutton-color" content="#0F172A">
 
-  <title>MSC-69</title>
+  <title>MSC-69 App</title>
 
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
   <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
@@ -27,7 +27,7 @@
   <!-- BRIDGE SCRIPT สำหรับเชื่อมต่อ VS Code กับ Google Apps Script -->
   <!-- ================================================================= -->
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysRmc_h_m4iGqAUYsSSIq0knn2B2oXenLANCY70ikcc1zsxY-irOYQZFWwFprsB5IY1g/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwtiShLP6kgGQW9zGknlMJdHZZk1VMtBf7ZfFMebQHwdoLbxb703nUqawycmKXcaaRHBg/exec";
 
     window.google = {
       script: {
@@ -156,7 +156,7 @@
       <div class="max-w-6xl mx-auto flex justify-between items-center">
         <div>
           <p id="headerDate" class="text-[10px] sm:text-xs text-brand-orange font-medium">-</p>
-          <h1 class="text-sm sm:text-lg font-bold text-white leading-tight">MSC-69</h1>
+          <h1 class="text-sm sm:text-lg font-bold text-white leading-tight">MSC-69 Archive</h1>
         </div>
 
         <div class="flex items-center space-x-2 sm:space-x-4">
@@ -361,7 +361,7 @@
             <select id="leaderboardFilter" onchange="loadLeaderboard()" class="bg-slate-900 border border-slate-700 text-[11px] sm:text-sm text-slate-300 rounded-xl px-2.5 py-1 focus:outline-none cursor-pointer">
               <option value="today">ขยันวันนี้</option>
               <option value="week">ขยันสัปดาห์นี้</option>
-              <option value="all">ขยันตลอด</option>
+              <option value="all">ขยันตลอดกาล</option>
             </select>
           </div>
           <div id="leaderboardList" class="space-y-2"></div>
@@ -479,6 +479,31 @@
     <div class="flex-1 relative bg-slate-950 overflow-hidden">
       <div class="absolute top-0 left-0 right-0 h-16 bg-transparent z-10 pointer-events-auto"></div>
       <iframe id="pdfFrame" class="w-full h-full border-0" src="" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <!-- NEWS DETAIL MODAL -->
+  <div id="newsDetailModal" class="fixed inset-0 bg-slate-950 bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-3xl p-5 sm:p-7 max-w-lg w-full border border-slate-700 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <span id="modalNewsCat" class="bg-orange-500/20 text-brand-orange text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">-</span>
+        <button onclick="closeNewsDetailModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      
+      <h3 id="modalNewsTitle" class="text-base sm:text-xl font-bold text-white leading-snug">-</h3>
+      <p id="modalNewsDate" class="text-[10px] sm:text-xs text-slate-500 font-mono">-</p>
+      
+      <div id="modalNewsImgContainer" class="hidden">
+        <img id="modalNewsImg" src="" class="w-full h-auto rounded-2xl max-h-72 object-cover border border-slate-700">
+      </div>
+      
+      <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/60">
+        <p id="modalNewsContent" class="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line">-</p>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeNewsDetailModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl text-xs font-semibold">ปิดหน้าต่าง</button>
+      </div>
     </div>
   </div>
 
@@ -719,44 +744,88 @@
       container.innerHTML = '';
       (data || []).forEach(function(n) {
         var item = document.createElement('div');
-        item.className = "bg-slate-900 border border-slate-700/60 rounded-2xl p-3.5 sm:p-4 relative group";
+        item.className = "bg-slate-900 border border-slate-700/60 rounded-2xl p-3.5 sm:p-4 relative group cursor-pointer hover:border-brand-orange transition";
+        item.onclick = function() { openNewsDetail(n); };
         
         var adminBtns = '';
         if (isAdminUser) {
-          adminBtns = '<div class="flex space-x-2">' +
-            '<button onclick="editNews(' + n.rowId + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
-            '<button onclick="deleteNews(' + n.rowId + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
+          adminBtns = '<div class="flex space-x-2" onclick="event.stopPropagation()">' +
+            '<button onclick="editNews(' + n.rowId + ')" class="text-blue-400 hover:text-blue-300 text-xs p-1"><i class="fa-solid fa-pen"></i></button>' +
+            '<button onclick="deleteNews(' + n.rowId + ')" class="text-red-400 hover:text-red-300 text-xs p-1"><i class="fa-solid fa-trash"></i></button>' +
             '</div>';
         }
 
+        var hasImgBadge = n.imageUrl ? '<i class="fa-solid fa-image text-brand-orange ml-1.5" title="มีรูปภาพ"></i>' : '';
+
         item.innerHTML = '<div class="flex justify-between items-center mb-1">' +
-          '<span class="bg-orange-500/20 text-brand-orange text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">' + escapeHtml(n.category) + '</span>' +
+          '<div class="flex items-center space-x-2">' +
+            '<span class="bg-orange-500/20 text-brand-orange text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">' + escapeHtml(n.category) + '</span>' +
+            hasImgBadge +
+          '</div>' +
           '<div class="flex items-center space-x-2">' +
           '<span class="text-[9px] sm:text-[10px] text-slate-500 font-mono">' + escapeHtml(n.date) + '</span>' +
           adminBtns +
           '</div></div>' +
           '<h4 class="font-bold text-white text-xs sm:text-sm mb-1">' + escapeHtml(n.title) + '</h4>' +
-          '<p class="text-[11px] sm:text-xs text-slate-400">' + escapeHtml(n.content) + '</p>';
+          '<p class="text-[11px] sm:text-xs text-slate-400 line-clamp-2">' + escapeHtml(n.content) + '</p>';
         container.appendChild(item);
       });
+    }
+
+    function openNewsDetail(n) {
+      document.getElementById('modalNewsCat').innerText = n.category;
+      document.getElementById('modalNewsTitle').innerText = n.title;
+      document.getElementById('modalNewsDate').innerText = n.date;
+      document.getElementById('modalNewsContent').innerText = n.content;
+
+      var imgContainer = document.getElementById('modalNewsImgContainer');
+      var imgElem = document.getElementById('modalNewsImg');
+      if (n.imageUrl && n.imageUrl !== "") {
+        imgElem.src = n.imageUrl;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgElem.src = "";
+        imgContainer.classList.add('hidden');
+      }
+
+      document.getElementById('newsDetailModal').classList.remove('hidden');
+    }
+
+    function closeNewsDetailModal() {
+      document.getElementById('newsDetailModal').classList.add('hidden');
     }
 
     function openNewsModal() {
       showAdminModal("เพิ่มข่าวสารและประชาสัมพันธ์", 
         '<div><label class="text-slate-400">หัวข้อข่าว</label><input type="text" id="popNewsTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
         '<div><label class="text-slate-400">หมวดหมู่</label><input type="text" id="popNewsCat" value="ข่าวประกาศ" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
-        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-20"></textarea></div>',
+        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-24"></textarea></div>' +
+        '<div><label class="text-slate-400">แนบรูปภาพประกอบ (ถ้ามี)</label><input type="file" id="popNewsFile" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-300 mt-1"></div>',
         function() {
           var title = document.getElementById('popNewsTitle').value.trim();
           var cat = document.getElementById('popNewsCat').value.trim();
           var content = document.getElementById('popNewsContent').value.trim();
+          var fileInput = document.getElementById('popNewsFile');
           if (!title || !content) return;
 
-          google.script.run.withSuccessHandler(function(res) {
-            if (res && res.news) renderNewsList(res.news);
-            closeAdminModal();
-            showAppPopup("สำเร็จ", "เพิ่มข่าวสารเรียบร้อยแล้ว", "success");
-          }).addNewsData(currentStudentId, currentSessionToken, title, cat, content);
+          var sendData = function(fileData) {
+            google.script.run.withSuccessHandler(function(res) {
+              if (res && res.news) renderNewsList(res.news);
+              closeAdminModal();
+              showAppPopup("สำเร็จ", "เพิ่มข่าวสารเรียบร้อยแล้ว", "success");
+            }).addNewsData(currentStudentId, currentSessionToken, title, cat, content, fileData);
+          };
+
+          if (fileInput.files[0]) {
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+              sendData({ fileName: file.name, mimeType: file.type, data: evt.target.result });
+            };
+            reader.readAsDataURL(file);
+          } else {
+            sendData(null);
+          }
         }
       );
     }
@@ -768,18 +837,33 @@
       showAdminModal("แก้ไขข่าวสาร", 
         '<div><label class="text-slate-400">หัวข้อข่าว</label><input type="text" id="popNewsTitle" value="' + escapeHtml(item.title) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
         '<div><label class="text-slate-400">หมวดหมู่</label><input type="text" id="popNewsCat" value="' + escapeHtml(item.category) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
-        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-20">' + escapeHtml(item.content) + '</textarea></div>',
+        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-24">' + escapeHtml(item.content) + '</textarea></div>' +
+        '<div><label class="text-slate-400">เปลี่ยนรูปภาพใหม่ (ถ้ามี)</label><input type="file" id="popNewsFile" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-300 mt-1"></div>',
         function() {
           var title = document.getElementById('popNewsTitle').value.trim();
           var cat = document.getElementById('popNewsCat').value.trim();
           var content = document.getElementById('popNewsContent').value.trim();
+          var fileInput = document.getElementById('popNewsFile');
           if (!title || !content) return;
 
-          google.script.run.withSuccessHandler(function(res) {
-            if (res && res.news) renderNewsList(res.news);
-            closeAdminModal();
-            showAppPopup("สำเร็จ", "แก้ไขข่าวสารเรียบร้อยแล้ว", "success");
-          }).updateNewsData(currentStudentId, currentSessionToken, rowId, title, cat, content);
+          var sendUpdate = function(fileData) {
+            google.script.run.withSuccessHandler(function(res) {
+              if (res && res.news) renderNewsList(res.news);
+              closeAdminModal();
+              showAppPopup("สำเร็จ", "แก้ไขข่าวสารเรียบร้อยแล้ว", "success");
+            }).updateNewsData(currentStudentId, currentSessionToken, rowId, title, cat, content, fileData);
+          };
+
+          if (fileInput.files[0]) {
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+              sendUpdate({ fileName: file.name, mimeType: file.type, data: evt.target.result });
+            };
+            reader.readAsDataURL(file);
+          } else {
+            sendUpdate(null);
+          }
         }
       );
     }
@@ -909,6 +993,7 @@
         });
       }
     }
+
     function openCalendarModal() {
       showAdminModal("เพิ่มกำหนดการปฏิทิน", 
         '<div><label class="text-slate-400">หัวข้อกิจกรรม</label><input type="text" id="popCalTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
@@ -1027,7 +1112,6 @@
       }, 1000);
     }
 
-    // STUDY ROOM & VIRTUAL TABLE FUNCTIONS
     function enterRoom(roomId, roomName, enableChat) {
       currentRoomId = roomId;
       hasChatFeature = enableChat;
