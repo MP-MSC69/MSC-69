@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="msapplication-navbutton-color" content="#0F172A">
+
+  <title>MSC-69</title>
+
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+  <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="https://raw.githubusercontent.com/MP-MSC69/MSC-69/refs/heads/main/Logo.png">
+
+  <link rel="manifest" href="?pwa=manifest">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- ================================================================= -->
+  <!-- BRIDGE SCRIPT สำหรับเชื่อมต่อ VS Code กับ Google Apps Script -->
+  <!-- ================================================================= -->
+  <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysRmc_h_m4iGqAUYsSSIq0knn2B2oXenLANCY70ikcc1zsxY-irOYQZFWwFprsB5IY1g/exec";
+
+    window.google = {
+      script: {
+        run: (function() {
+          function createRunner(successHandler, failureHandler) {
+            return new Proxy({}, {
+              get(target, prop) {
+                if (prop === 'withSuccessHandler') {
+                  return function(fn) { return createRunner(fn, failureHandler); };
+                }
+                if (prop === 'withFailureHandler') {
+                  return function(fn) { return createRunner(successHandler, fn); };
+                }
+                return function(...args) {
+                  setTimeout(async () => {
+                    try {
+                      const response = await fetch(GAS_WEB_APP_URL, {
+                        method: "POST",
+                        body: JSON.stringify({ functionName: prop, args: args })
+                      });
+                      const text = await response.text();
+                      let result;
+                      try {
+                        result = JSON.parse(text);
+                      } catch(e) {
+                        throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง: " + text);
+                      }
+                      if (result && result.error) throw new Error(result.error);
+                      if (successHandler) successHandler(result);
+                    } catch (err) {
+                      if (failureHandler) failureHandler(err);
+                      else console.error(err);
+                    }
+                  }, 0);
+                };
+              }
+            });
+          }
+          return createRunner(null, null);
+        })()
+      }
+    };
+  </script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#FF6B00',
+              orangeHover: '#E05E00',
+              grayBg: '#0F172A',
+              cardBg: '#1E293B'
+            }
+          },
+          fontFamily: { kanit: ['Kanit', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body {
+      background-color: #0F172A;
+      font-family: 'Kanit', sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    .ios-safe-header {
+      padding-top: max(44px, env(safe-area-inset-top, 44px));
+    }
+
+    .safe-pb { 
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); 
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    @media print { body { display: none !important; } }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS || (window.navigator.standalone === true)) {
+        var headerElem = document.querySelector('header');
+        if (headerElem) {
+          headerElem.style.paddingTop = "calc(env(safe-area-inset-top, 0px) + 40px)";
+        }
+      }
+    });
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 flex flex-col h-full w-full overflow-hidden" oncontextmenu="return false;">
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-950 bg-opacity-95 flex items-center justify-center z-50 p-4">
+    <div class="bg-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-xs sm:max-w-sm w-full border border-slate-700 text-center">
+      <div class="w-14 h-14 sm:w-20 sm:h-20 bg-orange-500/20 text-brand-orange rounded-full flex items-center justify-center mx-auto mb-4 text-2xl sm:text-3xl">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <h2 class="text-xl sm:text-2xl font-bold text-white mb-1">MSC-69</h2>
+      <p class="text-slate-400 text-xs sm:text-sm mb-6">กรุณากรอกรหัสนิสิต 8 หลักเพื่อเข้าสู่ระบบ</p>
+      
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <input type="text" id="studentIdInput" maxlength="8" placeholder="6952xxxx" required
+          class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-center text-lg sm:text-xl font-mono text-white focus:outline-none focus:ring-2 focus:ring-brand-orange">
+        <p id="loginError" class="text-red-400 text-xs sm:text-sm hidden">รหัสนิสิตไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน</p>
+        <button type="submit" id="loginBtn"
+          class="w-full bg-brand-orange hover:bg-brand-orangeHover text-white font-semibold py-3 sm:py-3.5 rounded-2xl shadow-lg transition text-sm sm:text-base">
+          เข้าสู่ระบบ
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="mainApp" class="hidden flex-1 flex flex-col h-full w-full overflow-hidden">
+    <!-- HEADER -->
+    <header class="ios-safe-header bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-3 sm:px-6 pb-2.5 sm:pb-3.5 w-full shrink-0">
+      <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <div>
+          <p id="headerDate" class="text-[10px] sm:text-xs text-brand-orange font-medium">-</p>
+          <h1 class="text-sm sm:text-lg font-bold text-white leading-tight">MSC-69 Archive</h1>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <div class="flex items-center space-x-2 bg-slate-800 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-slate-700">
+            <img id="userAvatar" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="w-5 h-5 sm:w-7 sm:h-7 rounded-full object-cover">
+            <div class="text-left">
+              <p id="userName" class="text-[11px] sm:text-xs font-semibold text-white truncate max-w-[75px] sm:max-w-[120px]">นิสิต</p>
+              <p id="userBadge" class="text-[9px] sm:text-[10px] text-slate-400 font-mono">6952xxxx</p>
+            </div>
+          </div>
+          <button onclick="confirmLogout()" class="text-slate-400 hover:text-red-400 text-sm sm:text-base p-1.5" title="ออกจากระบบ">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-3 sm:px-6 py-3.5 sm:py-6 flex-1 w-full safe-pb overflow-y-auto custom-scrollbar">
+      <!-- TAB 1: HOME -->
+      <section id="tab-home" class="tab-content space-y-4 sm:space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm sm:text-xl font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-house text-brand-orange"></i>
+            <span>หน้าแรก</span>
+          </h2>
+          <button onclick="openNotifModal()" class="relative bg-slate-800 border border-slate-700 text-slate-300 hover:text-brand-orange p-2 sm:p-2.5 rounded-2xl transition">
+            <i class="fa-solid fa-bell text-xs sm:text-base"></i>
+            <span id="notifBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-orange rounded-full animate-ping"></span>
+            <span id="notifDot" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-orange rounded-full"></span>
+          </button>
+        </div>
+
+        <div class="bg-gradient-to-r from-orange-600 to-amber-600 rounded-3xl p-4 sm:p-7 text-white shadow-xl relative overflow-hidden">
+          <div class="relative z-10">
+            <span class="bg-black/30 text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium">📌 กำหนดการถัดไป</span>
+            
+            <div id="hasCountdownView">
+              <h2 id="cdTitle" class="text-base sm:text-3xl font-bold mt-2 truncate">-</h2>
+              <p id="cdDesc" class="text-[11px] sm:text-sm text-orange-100 mt-1 truncate">-</p>
+              <div class="grid grid-cols-4 gap-1.5 sm:gap-4 mt-3 sm:mt-4 text-center max-w-lg">
+                <div class="bg-black/20 backdrop-blur rounded-2xl p-1.5 sm:p-3"><span id="cdDays" class="text-sm sm:text-3xl font-bold">00</span><p class="text-[9px] sm:text-xs">วัน</p></div>
+                <div class="bg-black/20 backdrop-blur rounded-2xl p-1.5 sm:p-3"><span id="cdHours" class="text-sm sm:text-3xl font-bold">00</span><p class="text-[9px] sm:text-xs">ชม.</p></div>
+                <div class="bg-black/20 backdrop-blur rounded-2xl p-1.5 sm:p-3"><span id="cdMins" class="text-sm sm:text-3xl font-bold">00</span><p class="text-[9px] sm:text-xs">นาที</p></div>
+                <div class="bg-black/20 backdrop-blur rounded-2xl p-1.5 sm:p-3"><span id="cdSecs" class="text-sm sm:text-3xl font-bold">00</span><p class="text-[9px] sm:text-xs">วิ</p></div>
+              </div>
+            </div>
+
+            <div id="noCountdownView" class="hidden py-4 text-center">
+              <h2 class="text-sm sm:text-xl font-bold text-white mt-1">ยังไม่มีกำหนดการสำคัญเร็วๆ นี้</h2>
+              <p class="text-[11px] sm:text-sm text-orange-100 mt-1">ติดตามประกาศกำหนดการเพิ่มเติมได้จากคณะและสาขาฯ</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-clock absolute -right-6 -bottom-6 text-6xl sm:text-9xl opacity-10"></i>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2.5">
+            <h3 class="text-xs sm:text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-shuffle text-brand-orange"></i>
+              <span>แนะนำชีทสรุปประจำวัน</span>
+            </h3>
+            <button onclick="loadDailySheets()" class="text-[11px] sm:text-sm text-brand-orange hover:underline">รีเฟรช</button>
+          </div>
+          <div id="dailySheetsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4"></div>
+        </div>
+
+        <div class="bg-slate-800 rounded-3xl p-4 sm:p-6 border border-slate-700">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-xs sm:text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-bullhorn text-brand-orange"></i>
+              <span>ข่าวสารและประชาสัมพันธ์</span>
+            </h3>
+            <button id="addNewsBtn" onclick="openNewsModal()" class="hidden bg-brand-orange text-white text-[11px] sm:text-sm px-2.5 py-1 sm:py-2 rounded-xl font-medium">
+              + เพิ่มข่าวสาร (Admin)
+            </button>
+          </div>
+          <div id="newsList" class="space-y-2.5"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CALENDAR -->
+      <section id="tab-calendar" class="tab-content hidden space-y-4 sm:space-y-6">
+        <div class="bg-slate-800 rounded-3xl p-4 sm:p-6 border border-slate-700">
+          <div class="flex justify-between items-center mb-3">
+            <h3 id="calMonthYear" class="text-sm sm:text-xl font-bold text-white">เดือนปี</h3>
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+              <button id="addCalBtn" onclick="openCalendarModal()" class="hidden bg-brand-orange text-white text-[11px] sm:text-sm px-2.5 py-1 rounded-xl font-medium mr-1">
+                + เพิ่ม (Admin)
+              </button>
+              <button onclick="changeMonth(-1)" class="bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded-xl text-xs sm:text-sm"><i class="fa-solid fa-chevron-left"></i></button>
+              <button onclick="changeMonth(1)" class="bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded-xl text-xs sm:text-sm"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-7 gap-1 text-center font-bold text-[11px] sm:text-sm text-slate-400 mb-2">
+            <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+          </div>
+          <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs sm:text-sm"></div>
+        </div>
+
+        <div class="bg-slate-800 rounded-3xl p-4 sm:p-6 border border-slate-700">
+          <h4 id="selectedDateTitle" class="text-xs sm:text-base font-bold text-brand-orange mb-2.5">กิจกรรมประจำวัน</h4>
+          <div id="selectedDateEvents" class="space-y-2 text-xs sm:text-sm text-slate-300"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: STUDY TOGETHER -->
+      <section id="tab-study" class="tab-content hidden space-y-4 sm:space-y-6">
+        <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-slate-700/80 flex justify-between items-center shadow-lg">
+          <div class="flex items-center space-x-2.5 sm:space-x-3">
+            <span class="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-500"></span>
+            </span>
+            <div>
+              <p class="text-xs sm:text-base font-semibold text-white">โต๊ะอ่านหนังสือเสมือนจริง</p>
+              <p class="text-[9px] sm:text-xs text-slate-400">มาร่วมตั้งใจอ่านหนังสือไปพร้อมๆ กับเพื่อนในสาขาฯ</p>
+            </div>
+          </div>
+          <span id="onlineCounter" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm">0 คนกำลังอ่าน</span>
+        </div>
+
+        <div id="roomSelectionView" class="space-y-3 sm:space-y-4">
+          <h3 class="text-xs sm:text-lg font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-chair text-brand-orange"></i>
+            <span>เลือกโซนอ่านหนังสือของคุณ</span>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div onclick="enterRoom('room1', 'โต๊ะติวกลุ่ม (พูดคุย & แชทสด)', true)" class="group bg-slate-800 hover:bg-slate-800/80 border border-slate-700 hover:border-brand-orange rounded-3xl p-4 sm:p-5 cursor-pointer transition-all duration-300 shadow-xl flex justify-between items-center relative overflow-hidden">
+              <div class="space-y-1 z-10">
+                <span class="bg-emerald-500/20 text-emerald-400 text-[9px] sm:text-xs px-2 py-0.5 rounded-full font-bold">เปิดใช้งาน</span>
+                <h4 class="font-bold text-white text-sm sm:text-lg mt-1 group-hover:text-brand-orange transition">ห้องที่ 1: โต๊ะติวกลุ่ม (Social Study)</h4>
+                <p class="text-[11px] sm:text-sm text-slate-400">พูดคุย พิมพ์แชทสอบถาม แลกเปลี่ยนเนื้อหากันได้</p>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-500/10 text-brand-orange flex items-center justify-center text-xl sm:text-2xl z-10 shrink-0">
+                <i class="fa-solid fa-comments"></i>
+              </div>
+            </div>
+
+            <div onclick="enterRoom('room2', 'โซนเงียบสงบ - โหมดสมาธิ (Focus)', false)" class="group bg-slate-800 hover:bg-slate-800/80 border border-slate-700 hover:border-brand-orange rounded-3xl p-4 sm:p-5 cursor-pointer transition-all duration-300 shadow-xl flex justify-between items-center relative overflow-hidden">
+              <div class="space-y-1 z-10">
+                <span class="bg-emerald-500/20 text-emerald-400 text-[9px] sm:text-xs px-2 py-0.5 rounded-full font-bold">เปิดใช้งาน</span>
+                <h4 class="font-bold text-white text-sm sm:text-lg mt-1 group-hover:text-brand-orange transition">ห้องที่ 2: โซนเงียบสงบ (Deep Focus)</h4>
+                <p class="text-[11px] sm:text-sm text-slate-400">เน้นใช้สมาธิระดับสูง ปิดห้องแชทเพื่อไร้สิ่งรบกวน</p>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl sm:text-2xl z-10 shrink-0">
+                <i class="fa-solid fa-book-open"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="activeRoomView" class="hidden space-y-4">
+          <div class="bg-slate-800 rounded-3xl p-3.5 sm:p-5 border border-slate-700/80 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-2.5">
+            <div class="text-center sm:text-left">
+              <span id="currentRoomName" class="text-[11px] sm:text-sm font-bold text-brand-orange bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-orange-500/20">ห้องอ่านหนังสือ</span>
+              <p class="text-[11px] sm:text-sm text-slate-400 mt-1 font-medium">เวลารอบปัจจุบันของคุณ: <span id="studyTimerDisplay" class="text-base sm:text-xl font-mono font-bold text-amber-400 ml-1">00:00:00</span></p>
+            </div>
+            
+            <button onclick="leaveRoom()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-semibold px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-2xl text-[11px] sm:text-sm transition inline-flex items-center space-x-1.5 shrink-0">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>ลุกออกจากโต๊ะ</span>
+            </button>
+          </div>
+
+          <div class="bg-slate-800/90 rounded-3xl p-3.5 sm:p-6 border border-slate-700/80 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+              <h4 class="text-xs sm:text-base font-bold text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-users text-brand-orange"></i>
+                <span>เพื่อนที่นั่งอยู่โต๊ะเดียวกันขณะนี้</span>
+              </h4>
+              <span id="roomUsersBadge" class="text-[10px] sm:text-xs bg-slate-900 text-slate-300 font-mono px-2 py-0.5 rounded-full border border-slate-700">0 คนที่โต๊ะนี้</span>
+            </div>
+
+            <div id="virtualTableGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3"></div>
+          </div>
+
+          <div id="chatBoxContainer" class="bg-slate-800 rounded-3xl p-3.5 sm:p-5 border border-slate-700/80 shadow-xl">
+            <div class="flex justify-between items-center mb-2.5">
+              <h4 class="text-[11px] sm:text-sm font-bold text-slate-300 flex items-center space-x-1.5">
+                <i class="fa-solid fa-comments text-brand-orange"></i>
+                <span>พูดคุยกับเพื่อนที่โต๊ะอ่านหนังสือ</span>
+              </h4>
+            </div>
+            <div id="chatMessages" class="h-36 sm:h-52 overflow-y-auto space-y-2 mb-2.5 text-xs sm:text-sm text-slate-300 pr-1 custom-scrollbar"></div>
+            <form onsubmit="sendChat(event)" class="flex space-x-2">
+              <input type="text" id="chatInput" placeholder="พิมพ์ส่งกำลังใจ ทักทายเพื่อน..." class="flex-1 bg-slate-900 border border-slate-700 rounded-2xl px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-orange">
+              <button type="submit" class="bg-brand-orange hover:bg-brand-orangeHover text-white font-medium px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs sm:text-sm transition flex items-center space-x-1 shrink-0">
+                <span>ส่ง</span>
+                <i class="fa-solid fa-paper-plane text-[9px]"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div id="statsContainer" class="bg-slate-800 rounded-3xl p-4 sm:p-6 border border-slate-700/80 shadow-xl space-y-3 sm:space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-700/60 pb-2.5">
+            <h3 class="text-xs sm:text-lg font-bold text-white flex items-center space-x-1.5">
+              <i class="fa-solid fa-trophy text-amber-400"></i>
+              <span>ตารางอันดับสะสมเวลา</span>
+            </h3>
+            <select id="leaderboardFilter" onchange="loadLeaderboard()" class="bg-slate-900 border border-slate-700 text-[11px] sm:text-sm text-slate-300 rounded-xl px-2.5 py-1 focus:outline-none cursor-pointer">
+              <option value="today">ขยันวันนี้</option>
+              <option value="week">ขยันสัปดาห์นี้</option>
+              <option value="all">ขยันตลอด</option>
+            </select>
+          </div>
+          <div id="leaderboardList" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SHEETS -->
+      <section id="tab-sheets" class="tab-content hidden space-y-4 sm:space-y-6">
+        <div class="bg-slate-800 rounded-3xl p-3.5 sm:p-5 border border-slate-700">
+          <div class="flex justify-between items-center mb-2.5 border-b border-slate-700 pb-2">
+            <span class="text-brand-orange font-bold text-xs sm:text-base">ค้นหาเอกสาร</span>
+            <button id="addSheetBtn" onclick="openAddSheetModal()" class="hidden bg-brand-orange text-white px-2.5 py-1 rounded-xl text-[11px] sm:text-sm font-medium">
+              + อัปโหลด (Admin)
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+            <div>
+              <label class="text-[9px] sm:text-xs text-slate-400">ชั้นปี</label>
+              <select id="filterYear" onchange="filterSheets()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm text-slate-200">
+                <option value="">ทุกชั้นปี</option>
+                <option value="ปี 1">ปี 1</option><option value="ปี 2">ปี 2</option><option value="ปี 3">ปี 3</option><option value="ปี 4">ปี 4</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] sm:text-xs text-slate-400">ภาคเรียน</label>
+              <select id="filterSemester" onchange="filterSheets()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm text-slate-200">
+                <option value="">ทุกเทอม</option>
+                <option value="เทอม 1">เทอม 1</option><option value="เทอม 2">เทอม 2</option><option value="ภาคฤดูร้อน">ภาคฤดูร้อน</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] sm:text-xs text-slate-400">ค้นหา</label>
+              <input type="text" id="searchInput" oninput="filterSheets()" placeholder="ชื่อวิชา หรือ ชีท..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm text-slate-200">
+            </div>
+          </div>
+        </div>
+
+        <div id="allSheetsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"></div>
+      </section>
+
+      <!-- TAB 5: SETTINGS -->
+      <section id="tab-settings" class="tab-content hidden space-y-5">
+        <div class="bg-slate-800 rounded-3xl p-4 sm:p-7 border border-slate-700 max-w-md mx-auto space-y-4 sm:space-y-6">
+          <h3 class="text-sm sm:text-xl font-bold text-white text-center">ตั้งค่าโปรไฟล์</h3>
+          
+          <form onsubmit="handleSaveProfile(event)" class="space-y-3.5">
+            <div class="text-center">
+              <img id="settingAvatarPreview" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="w-16 h-16 sm:w-28 sm:h-28 rounded-full mx-auto object-cover border-4 border-brand-orange mb-2">
+              <label class="text-xs sm:text-sm text-brand-orange cursor-pointer hover:underline">
+                เปลี่ยนรูปโปรไฟล์
+                <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="previewAvatar(event)">
+              </label>
+            </div>
+
+            <div>
+              <label class="text-xs sm:text-sm text-slate-400">ชื่อแสดงผล</label>
+              <input type="text" id="settingDisplayName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white">
+            </div>
+
+            <button type="submit" id="saveProfileBtn" class="w-full bg-brand-orange text-white py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm">
+              บันทึกการเปลี่ยนแปลง
+            </button>
+          </form>
+
+          <div class="pt-3 border-t border-slate-700">
+            <button onclick="openContactModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-address-book"></i>
+              <span>ช่องทางติดต่อ</span>
+            </button>
+          </div>
+
+          <div class="pt-0.5">
+            <button onclick="confirmLogout()" class="w-full bg-red-500/10 text-red-400 border border-red-500/20 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold">
+              ออกจากระบบ
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-40 px-1.5 py-1.5 w-full shrink-0">
+      <div class="max-w-md mx-auto flex justify-between items-center">
+        <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex-1 flex flex-col items-center py-1 text-brand-orange">
+          <i class="fa-solid fa-house text-sm sm:text-lg"></i>
+          <span class="text-[9px] sm:text-[10px] mt-0.5 font-medium">หน้าแรก</span>
+        </button>
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-500">
+          <i class="fa-solid fa-calendar-days text-sm sm:text-lg"></i>
+          <span class="text-[9px] sm:text-[10px] mt-0.5 font-medium">ปฏิทิน</span>
+        </button>
+        <button onclick="switchTab('study')" id="nav-study" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-500">
+          <i class="fa-solid fa-user-group text-sm sm:text-lg"></i>
+          <span class="text-[9px] sm:text-[10px] mt-0.5 font-medium">อ่านด้วยกัน</span>
+        </button>
+        <button onclick="switchTab('sheets')" id="nav-sheets" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-500">
+          <i class="fa-solid fa-book-bookmark text-sm sm:text-lg"></i>
+          <span class="text-[9px] sm:text-[10px] mt-0.5 font-medium">คลังชีท</span>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex-1 flex flex-col items-center py-1 text-slate-500">
+          <i class="fa-solid fa-gear text-sm sm:text-lg"></i>
+          <span class="text-[9px] sm:text-[10px] mt-0.5 font-medium">ตั้งค่า</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- VIEWER MODAL -->
+  <div id="viewerModal" class="fixed inset-0 bg-black bg-opacity-95 z-50 hidden flex flex-col" oncontextmenu="return false;">
+    <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center border-b border-slate-800">
+      <h3 id="viewerTitle" class="font-bold text-xs sm:text-sm truncate">ชื่อเอกสาร</h3>
+      <button onclick="closeViewer()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="flex-1 relative bg-slate-950 overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-16 bg-transparent z-10 pointer-events-auto"></div>
+      <iframe id="pdfFrame" class="w-full h-full border-0" src="" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <!-- CONTACT MODAL -->
+  <div id="contactModal" class="fixed inset-0 bg-slate-950 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-3xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full border border-slate-700 shadow-xl max-h-[85vh] overflow-y-auto space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="text-xs sm:text-sm font-bold text-white">ช่องทางติดต่อหน่วยงาน & บุคลากร</h3>
+        <button onclick="closeContactModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="selectContactTab('chair')" id="cTabChair" class="bg-brand-orange text-white py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold">ประธานสาขา</button>
+        <button onclick="selectContactTab('degree')" id="cTabDegree" class="bg-slate-700 text-slate-300 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold">สาขาฯ (ป.ตรี-โท)</button>
+        <button onclick="selectContactTab('faculty')" id="cTabFaculty" class="bg-slate-700 text-slate-300 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold">คณะวิทยาศาสตร์การแพทย์</button>
+        <button onclick="selectContactTab('nu')" id="cTabNu" class="bg-slate-700 text-slate-300 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold">มหาวิทยาลัยนเรศวร</button>
+      </div>
+
+      <div id="contactContent" class="space-y-3 text-xs pt-2"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION MODAL -->
+  <div id="notifModal" class="fixed inset-0 bg-slate-950 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-3xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full border border-slate-700 shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="text-xs sm:text-sm font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-bell text-brand-orange"></i>
+          <span>การแจ้งเตือน & อัปเดตทั้งหมด</span>
+        </h3>
+        <button onclick="closeNotifModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="notifList" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-950 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-3xl p-5 sm:p-6 max-w-xs sm:max-w-sm w-full border border-slate-700 shadow-xl text-center space-y-4">
+      <div id="confirmIcon" class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/20 text-brand-orange rounded-full flex items-center justify-center mx-auto text-lg sm:text-xl">
+        <i class="fa-solid fa-circle-question"></i>
+      </div>
+      <h3 id="confirmTitle" class="text-sm sm:text-base font-bold text-white">ยืนยันการดำเนินการ</h3>
+      <p id="confirmMessage" class="text-xs text-slate-300">คุณต้องการทำรายการนี้ใช่หรือไม่?</p>
+      <div class="flex justify-center space-x-2.5 pt-2">
+        <button id="confirmCancelBtn" onclick="closeConfirmModal()" class="bg-slate-700 text-slate-300 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-medium flex-1">ยกเลิก</button>
+        <button id="confirmOkBtn" class="bg-brand-orange text-white px-4 py-2 sm:py-2.5 rounded-xl text-xs font-semibold flex-1">ตกลง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN MODAL -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-950 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-3xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full border border-slate-700 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <h3 id="adminModalTitle" class="text-xs sm:text-sm font-bold text-white">เพิ่ม/แก้ไขข้อมูล</h3>
+      <div id="adminModalBody" class="space-y-3 text-xs"></div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAdminModal()" class="bg-slate-700 text-slate-300 px-3.5 py-1.5 sm:py-2 rounded-xl text-xs">ยกเลิก</button>
+        <button id="adminModalSubmitBtn" class="bg-brand-orange text-white px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT CLIENT SIDE -->
+  <script>
+    var currentStudentId = '';
+    var currentSessionToken = '';
+    var isAdminUser = false;
+    var userProfile = {};
+    var sheetsData = [];
+    var calendarEventsData = [];
+    var newsData = [];
+    
+    var currentRoomId = null;
+    var hasChatFeature = true;
+    var isStudying = false;
+    var studySeconds = 0;
+    var studyInterval = null;
+    var lastNotifTimestamp = 0;
+    var isKickedOut = false;
+
+    var calDate = new Date();
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p' || e.key === 'S' || e.key === 'P')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    function escapeHtml(str) {
+      return str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      var inputId = document.getElementById('studentIdInput').value.trim();
+      var btn = document.getElementById('loginBtn');
+      btn.innerText = "กำลังเข้าสู่ระบบ...";
+
+      google.script.run.withSuccessHandler(function(res) {
+        btn.innerText = "เข้าสู่ระบบ";
+        if (res && res.allowed) {
+          currentStudentId = inputId;
+          currentSessionToken = res.sessionToken;
+          isAdminUser = res.isAdmin;
+          userProfile = res.profile || {};
+          isKickedOut = false;
+
+          document.getElementById('loginModal').classList.add('hidden');
+          document.getElementById('mainApp').classList.remove('hidden');
+
+          switchTab('home');
+          updateHeaderProfile();
+          loadInitialData();
+          startHeartbeat();
+        } else {
+          document.getElementById('loginError').classList.remove('hidden');
+        }
+      }).withFailureHandler(function(err) {
+        btn.innerText = "เข้าสู่ระบบ";
+        showAppPopup("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง", "error");
+      }).checkStudentId(inputId);
+    }
+
+    function updateHeaderProfile() {
+      var dName = userProfile.displayName || ("นิสิต " + currentStudentId);
+      document.getElementById('userName').innerText = dName;
+      document.getElementById('userBadge').innerText = currentStudentId;
+      
+      if (userProfile.avatarUrl) {
+        document.getElementById('userAvatar').src = userProfile.avatarUrl;
+        document.getElementById('settingAvatarPreview').src = userProfile.avatarUrl;
+      }
+      document.getElementById('settingDisplayName').value = dName;
+
+      if (isAdminUser) {
+        var b1 = document.getElementById('addSheetBtn');
+        var b2 = document.getElementById('addCalBtn');
+        var b3 = document.getElementById('addNewsBtn');
+        if (b1) b1.classList.remove('hidden');
+        if (b2) b2.classList.remove('hidden');
+        if (b3) b3.classList.remove('hidden');
+      }
+    }
+
+    function loadInitialData() {
+      var now = new Date();
+      var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('headerDate').innerText = now.toLocaleDateString('th-TH', options);
+
+      loadSheetsData();
+      loadCalendarEvents();
+      loadNewsData();
+      loadLeaderboard();
+    }
+
+    function confirmLogout() {
+      showAppConfirm("ออกจากระบบ", "คุณต้องการออกจากระบบใช่หรือไม่?", function() {
+        logout();
+      });
+    }
+
+    function logout() {
+      pauseStudyTimer();
+      currentStudentId = '';
+      currentSessionToken = '';
+      isAdminUser = false;
+      userProfile = {};
+
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('studentIdInput').value = '';
+      document.getElementById('loginError').classList.add('hidden');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
+      document.querySelectorAll('.nav-btn').forEach(function(el) {
+        el.classList.remove('text-brand-orange');
+        el.classList.add('text-slate-500');
+      });
+
+      var targetTab = document.getElementById('tab-' + tabName);
+      var targetNav = document.getElementById('nav-' + tabName);
+      if (targetTab) targetTab.classList.remove('hidden');
+      if (targetNav) {
+        targetNav.classList.remove('text-slate-500');
+        targetNav.classList.add('text-brand-orange');
+      }
+
+      if (tabName === 'calendar') renderCalendar();
+    }
+
+    function openNotifModal() {
+      document.getElementById('notifBadge').classList.add('hidden');
+      document.getElementById('notifDot').classList.add('hidden');
+
+      var list = document.getElementById('notifList');
+      list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">กำลังโหลดการแจ้งเตือน...</p>';
+
+      google.script.run.withSuccessHandler(function(res) {
+        list.innerHTML = '';
+        if (res && res.notifications && res.notifications.length > 0) {
+          res.notifications.forEach(function(n) {
+            var item = document.createElement('div');
+            item.className = "bg-slate-900 p-3.5 rounded-2xl border border-slate-700/60 space-y-1";
+            item.innerHTML = '<div class="flex justify-between items-center mb-1">' +
+              '<span class="text-xs font-bold text-brand-orange">' + escapeHtml(n.title) + '</span>' +
+              '<span class="text-[10px] text-slate-500 font-mono">' + escapeHtml(n.time) + '</span></div>' +
+              '<p class="text-xs text-slate-300 leading-relaxed">' + escapeHtml(n.body) + '</p>';
+            list.appendChild(item);
+          });
+        } else {
+          list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">ไม่มีประวัติการแจ้งเตือน</p>';
+        }
+      }).getAllNotificationLogs(currentStudentId, currentSessionToken);
+
+      document.getElementById('notifModal').classList.remove('hidden');
+    }
+
+    function closeNotifModal() {
+      document.getElementById('notifModal').classList.add('hidden');
+    }
+
+    function loadNewsData() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.news) {
+          newsData = res.news;
+          renderNewsList(newsData);
+        }
+      }).getNewsData(currentStudentId, currentSessionToken);
+    }
+
+    function renderNewsList(data) {
+      var container = document.getElementById('newsList');
+      if (!container) return;
+      container.innerHTML = '';
+      (data || []).forEach(function(n) {
+        var item = document.createElement('div');
+        item.className = "bg-slate-900 border border-slate-700/60 rounded-2xl p-3.5 sm:p-4 relative group";
+        
+        var adminBtns = '';
+        if (isAdminUser) {
+          adminBtns = '<div class="flex space-x-2">' +
+            '<button onclick="editNews(' + n.rowId + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
+            '<button onclick="deleteNews(' + n.rowId + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
+            '</div>';
+        }
+
+        item.innerHTML = '<div class="flex justify-between items-center mb-1">' +
+          '<span class="bg-orange-500/20 text-brand-orange text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">' + escapeHtml(n.category) + '</span>' +
+          '<div class="flex items-center space-x-2">' +
+          '<span class="text-[9px] sm:text-[10px] text-slate-500 font-mono">' + escapeHtml(n.date) + '</span>' +
+          adminBtns +
+          '</div></div>' +
+          '<h4 class="font-bold text-white text-xs sm:text-sm mb-1">' + escapeHtml(n.title) + '</h4>' +
+          '<p class="text-[11px] sm:text-xs text-slate-400">' + escapeHtml(n.content) + '</p>';
+        container.appendChild(item);
+      });
+    }
+
+    function openNewsModal() {
+      showAdminModal("เพิ่มข่าวสารและประชาสัมพันธ์", 
+        '<div><label class="text-slate-400">หัวข้อข่าว</label><input type="text" id="popNewsTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">หมวดหมู่</label><input type="text" id="popNewsCat" value="ข่าวประกาศ" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-20"></textarea></div>',
+        function() {
+          var title = document.getElementById('popNewsTitle').value.trim();
+          var cat = document.getElementById('popNewsCat').value.trim();
+          var content = document.getElementById('popNewsContent').value.trim();
+          if (!title || !content) return;
+
+          google.script.run.withSuccessHandler(function(res) {
+            if (res && res.news) renderNewsList(res.news);
+            closeAdminModal();
+            showAppPopup("สำเร็จ", "เพิ่มข่าวสารเรียบร้อยแล้ว", "success");
+          }).addNewsData(currentStudentId, currentSessionToken, title, cat, content);
+        }
+      );
+    }
+
+    function editNews(rowId) {
+      var item = newsData.find(function(n) { return n.rowId === rowId; });
+      if (!item) return;
+
+      showAdminModal("แก้ไขข่าวสาร", 
+        '<div><label class="text-slate-400">หัวข้อข่าว</label><input type="text" id="popNewsTitle" value="' + escapeHtml(item.title) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">หมวดหมู่</label><input type="text" id="popNewsCat" value="' + escapeHtml(item.category) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เนื้อหา</label><textarea id="popNewsContent" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1 h-20">' + escapeHtml(item.content) + '</textarea></div>',
+        function() {
+          var title = document.getElementById('popNewsTitle').value.trim();
+          var cat = document.getElementById('popNewsCat').value.trim();
+          var content = document.getElementById('popNewsContent').value.trim();
+          if (!title || !content) return;
+
+          google.script.run.withSuccessHandler(function(res) {
+            if (res && res.news) renderNewsList(res.news);
+            closeAdminModal();
+            showAppPopup("สำเร็จ", "แก้ไขข่าวสารเรียบร้อยแล้ว", "success");
+          }).updateNewsData(currentStudentId, currentSessionToken, rowId, title, cat, content);
+        }
+      );
+    }
+
+    function deleteNews(rowId) {
+      showAppConfirm("ยืนยันการลบ", "คุณต้องการลบข่าวสารนี้ใช่หรือไม่?", function() {
+        google.script.run.withSuccessHandler(function(res) {
+          if (res && res.news) renderNewsList(res.news);
+          showAppPopup("สำเร็จ", "ลบข่าวสารเรียบร้อยแล้ว", "success");
+        }).deleteNewsData(currentStudentId, currentSessionToken, rowId);
+      });
+    }
+
+    function loadCalendarEvents() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.events) {
+          calendarEventsData = res.events;
+          renderCalendar();
+          setupCountdown(res.events);
+        }
+      }).getCalendarEvents(currentStudentId, currentSessionToken);
+    }
+
+    function renderCalendar() {
+      var year = calDate.getFullYear();
+      var month = calDate.getMonth();
+      var monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+      
+      var header = document.getElementById('calMonthYear');
+      if (header) header.innerText = monthNames[month] + " " + (year + 543);
+
+      var firstDay = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      var grid = document.getElementById('calendarGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      for (var i = 0; i < firstDay; i++) {
+        grid.appendChild(document.createElement('div'));
+      }
+
+      for (var day = 1; day <= daysInMonth; day++) {
+        (function(d) {
+          var dateStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(d).padStart(2, '0');
+          
+          var hasEvent = (calendarEventsData || []).some(function(e) {
+            var s = e.startDate || dateStr;
+            var en = e.endDate || s;
+            return dateStr >= s && dateStr <= en;
+          });
+
+          var dayBtn = document.createElement('button');
+          dayBtn.className = "p-1.5 sm:p-2.5 rounded-xl text-center relative " + (hasEvent ? 'bg-orange-500/20 text-brand-orange font-bold border border-orange-500/30' : 'bg-slate-900 text-slate-300');
+          dayBtn.innerText = d;
+          dayBtn.onclick = function() { selectCalendarDate(dateStr, d, monthNames[month]); };
+
+          grid.appendChild(dayBtn);
+        })(day);
+      }
+    }
+
+    function changeMonth(delta) {
+      calDate.setMonth(calDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function selectCalendarDate(dateStr, day, monthName) {
+      document.getElementById('selectedDateTitle').innerText = "📅 กิจกรรมวันที่ " + day + " " + monthName;
+      var list = document.getElementById('selectedDateEvents');
+      if (!list) return;
+      list.innerHTML = '';
+
+      var matched = (calendarEventsData || []).filter(function(e) {
+        var s = e.startDate || dateStr;
+        var en = e.endDate || s;
+        return dateStr >= s && dateStr <= en;
+      });
+
+      if (matched.length === 0) {
+        list.innerHTML = '<div class="bg-slate-900/50 p-4 rounded-2xl text-center text-slate-500 text-xs sm:text-sm">ไม่มีกิจกรรม / กำหนดการในวันนี้</div>';
+      } else {
+        matched.forEach(function(ev) {
+          var item = document.createElement('div');
+          item.className = "bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3.5 sm:p-4 space-y-2 shadow-md relative group";
+          
+          var hasStartTime = ev.startTime && ev.startTime !== "" && ev.startTime.indexOf("1899") === -1;
+          var hasEndTime = ev.endTime && ev.endTime !== "" && ev.endTime.indexOf("1899") === -1;
+
+          var timeDisplay = "ตลอดวัน";
+          if (hasStartTime && hasEndTime) {
+            timeDisplay = ev.startTime + " น. - " + ev.endTime + " น.";
+          } else if (hasStartTime) {
+            timeDisplay = "ตั้งแต่ " + ev.startTime + " น. เป็นต้นไป";
+          } else if (hasEndTime) {
+            timeDisplay = "ภายในเวลา " + ev.endTime + " น.";
+          }
+
+          var dateRangeDisplay = "";
+          if (ev.endDate && ev.endDate !== ev.startDate) {
+            dateRangeDisplay = '<div class="text-[11px] text-orange-300 font-medium flex items-center space-x-1.5"><i class="fa-solid fa-calendar-week"></i><span>ช่วงวันที่: ' + ev.startDate + ' ถึง ' + ev.endDate + '</span></div>';
+          }
+
+          var adminBtns = '';
+          if (isAdminUser) {
+            adminBtns = '<div class="flex space-x-2 absolute top-3.5 right-3.5">' +
+              '<button onclick="editCalendarEvent(' + ev.rowId + ')" class="text-blue-400 hover:text-blue-300 text-xs p-1" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>' +
+              '<button onclick="deleteCalendarEvent(' + ev.rowId + ')" class="text-red-400 hover:text-red-300 text-xs p-1" title="ลบ"><i class="fa-solid fa-trash"></i></button>' +
+              '</div>';
+          }
+
+          item.innerHTML = 
+            '<div class="pr-12">' +
+              '<div class="flex items-center space-x-2 mb-1">' +
+                '<span class="bg-orange-500/20 text-brand-orange text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border border-orange-500/30">' + escapeHtml(ev.type || 'ทั่วไป') + '</span>' +
+              '</div>' +
+              '<h5 class="text-xs sm:text-base font-bold text-white mb-1.5">' + escapeHtml(ev.title) + '</h5>' +
+            '</div>' +
+            adminBtns +
+            '<div class="bg-slate-950/50 rounded-xl p-2.5 space-y-1 border border-slate-800 text-[11px] sm:text-xs text-slate-300">' +
+              dateRangeDisplay +
+              '<div class="text-amber-400 font-medium flex items-center space-x-1.5"><i class="fa-regular fa-clock"></i><span>เวลา: ' + timeDisplay + '</span></div>' +
+              (ev.description ? '<div class="text-slate-400 flex items-start space-x-1.5 pt-1 border-t border-slate-800/60"><i class="fa-solid fa-circle-info mt-0.5"></i><span class="leading-relaxed">' + escapeHtml(ev.description) + '</span></div>' : '') +
+            '</div>';
+
+          list.appendChild(item);
+        });
+      }
+    }
+    function openCalendarModal() {
+      showAdminModal("เพิ่มกำหนดการปฏิทิน", 
+        '<div><label class="text-slate-400">หัวข้อกิจกรรม</label><input type="text" id="popCalTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">ตั้งแต่วันที่</label><input type="date" id="popCalStartDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">ถึงวันที่ (ถ้ามี)</label><input type="date" id="popCalEndDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">เวลาเริ่มต้น (เว้นได้)</label><input type="time" id="popCalStartTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เวลาสิ้นสุด (เว้นได้)</label><input type="time" id="popCalEndTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '</div>' +
+        '<div><label class="text-slate-400">ประเภท</label><input type="text" id="popCalType" value="Exam" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">รายละเอียด</label><input type="text" id="popCalDesc" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>',
+        function() {
+          var title = document.getElementById('popCalTitle').value.trim();
+          var startDate = document.getElementById('popCalStartDate').value;
+          var endDate = document.getElementById('popCalEndDate').value;
+          var startTime = document.getElementById('popCalStartTime').value;
+          var endTime = document.getElementById('popCalEndTime').value;
+          var type = document.getElementById('popCalType').value.trim();
+          var desc = document.getElementById('popCalDesc').value.trim();
+          if (!title || !startDate) return;
+
+          google.script.run.withSuccessHandler(function(res) {
+            if (res && res.events) {
+              calendarEventsData = res.events;
+              renderCalendar();
+              setupCountdown(res.events);
+            }
+            closeAdminModal();
+            showAppPopup("สำเร็จ", "บันทึกกำหนดการปฏิทินเรียบร้อยแล้ว", "success");
+          }).addCalendarEvent(currentStudentId, currentSessionToken, title, startDate, endDate, startTime, endTime, type, desc);
+        }
+      );
+    }
+
+    function editCalendarEvent(rowId) {
+      var ev = calendarEventsData.find(function(e) { return e.rowId === rowId; });
+      if (!ev) return;
+
+      showAdminModal("แก้ไขกำหนดการ", 
+        '<div><label class="text-slate-400">หัวข้อกิจกรรม</label><input type="text" id="popCalTitle" value="' + escapeHtml(ev.title) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">ตั้งแต่วันที่</label><input type="date" id="popCalStartDate" value="' + (ev.startDate || '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">ถึงวันที่</label><input type="date" id="popCalEndDate" value="' + (ev.endDate || '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">เวลาเริ่มต้น</label><input type="time" id="popCalStartTime" value="' + (ev.startTime || '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เวลาสิ้นสุด</label><input type="time" id="popCalEndTime" value="' + (ev.endTime || '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '</div>' +
+        '<div><label class="text-slate-400">ประเภท</label><input type="text" id="popCalType" value="' + escapeHtml(ev.type) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">รายละเอียด</label><input type="text" id="popCalDesc" value="' + escapeHtml(ev.description) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>',
+        function() {
+          var title = document.getElementById('popCalTitle').value.trim();
+          var startDate = document.getElementById('popCalStartDate').value;
+          var endDate = document.getElementById('popCalEndDate').value;
+          var startTime = document.getElementById('popCalStartTime').value;
+          var endTime = document.getElementById('popCalEndTime').value;
+          var type = document.getElementById('popCalType').value.trim();
+          var desc = document.getElementById('popCalDesc').value.trim();
+          if (!title || !startDate) return;
+
+          google.script.run.withSuccessHandler(function(res) {
+            if (res && res.events) {
+              calendarEventsData = res.events;
+              renderCalendar();
+              setupCountdown(res.events);
+            }
+            closeAdminModal();
+            showAppPopup("สำเร็จ", "แก้ไขกำหนดการเรียบร้อยแล้ว", "success");
+          }).updateCalendarEvent(currentStudentId, currentSessionToken, rowId, title, startDate, endDate, startTime, endTime, type, desc);
+        }
+      );
+    }
+
+    function deleteCalendarEvent(rowId) {
+      showAppConfirm("ยืนยันการลบ", "คุณต้องการลบกำหนดการนี้ใช่หรือไม่?", function() {
+        google.script.run.withSuccessHandler(function(res) {
+          if (res && res.events) {
+            calendarEventsData = res.events;
+            renderCalendar();
+            setupCountdown(res.events);
+          }
+          showAppPopup("สำเร็จ", "ลบกำหนดการเรียบร้อยแล้ว", "success");
+        }).deleteCalendarEvent(currentStudentId, currentSessionToken, rowId);
+      });
+    }
+
+    function setupCountdown(events) {
+      var countdownBox = document.getElementById('hasCountdownView');
+      var noCountdownBox = document.getElementById('noCountdownView');
+
+      if (!events || events.length === 0) {
+        countdownBox.classList.add('hidden');
+        noCountdownBox.classList.remove('hidden');
+        return;
+      }
+
+      countdownBox.classList.remove('hidden');
+      noCountdownBox.classList.add('hidden');
+
+      var targetDate = events[0].startDate || events[0].date;
+      var target = new Date(targetDate).getTime();
+      document.getElementById('cdTitle').innerText = events[0].title;
+      document.getElementById('cdDesc').innerText = events[0].description;
+
+      setInterval(function() {
+        var now = new Date().getTime();
+        var diff = target - now;
+        if (diff > 0) {
+          document.getElementById('cdDays').innerText = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+          document.getElementById('cdHours').innerText = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+          document.getElementById('cdMins').innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+          document.getElementById('cdSecs').innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+        }
+      }, 1000);
+    }
+
+    // STUDY ROOM & VIRTUAL TABLE FUNCTIONS
+    function enterRoom(roomId, roomName, enableChat) {
+      currentRoomId = roomId;
+      hasChatFeature = enableChat;
+
+      resetStudyTimer();
+
+      document.getElementById('currentRoomName').innerText = roomName;
+      document.getElementById('roomSelectionView').classList.add('hidden');
+      document.getElementById('activeRoomView').classList.remove('hidden');
+
+      document.getElementById('statsContainer').classList.add('hidden');
+
+      if (hasChatFeature) {
+        document.getElementById('chatBoxContainer').classList.remove('hidden');
+      } else {
+        document.getElementById('chatBoxContainer').classList.add('hidden');
+      }
+
+      startStudyTimer();
+      sendHeartbeat();
+    }
+
+    function leaveRoom() {
+      pauseStudyTimer();
+
+      if (studySeconds > 0) {
+        var secToSave = studySeconds;
+        google.script.run.saveStudyTime(currentStudentId, secToSave);
+      }
+
+      document.getElementById('activeRoomView').classList.add('hidden');
+      document.getElementById('roomSelectionView').classList.remove('hidden');
+
+      document.getElementById('statsContainer').classList.remove('hidden');
+
+      resetStudyTimer();
+
+      currentRoomId = null;
+      sendHeartbeat();
+      loadLeaderboard();
+    }
+
+    function startStudyTimer() {
+      if (!isStudying) {
+        isStudying = true;
+        studyInterval = setInterval(function() {
+          studySeconds++;
+          updateTimerDisplay();
+        }, 1000);
+      }
+    }
+
+    function pauseStudyTimer() {
+      isStudying = false;
+      if (studyInterval) {
+        clearInterval(studyInterval);
+        studyInterval = null;
+      }
+    }
+
+    function resetStudyTimer() {
+      pauseStudyTimer();
+      studySeconds = 0;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      var hrs = String(Math.floor(studySeconds / 3600)).padStart(2, '0');
+      var mins = String(Math.floor((studySeconds % 3600) / 60)).padStart(2, '0');
+      var secs = String(studySeconds % 60).padStart(2, '0');
+      document.getElementById('studyTimerDisplay').innerText = hrs + ":" + mins + ":" + secs;
+    }
+
+    function formatSecsToTime(totalSec) {
+      var h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+      var m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+      var s = String(totalSec % 60).padStart(2, '0');
+      return h + ":" + m + ":" + s;
+    }
+
+    function startHeartbeat() {
+      sendHeartbeat();
+      setInterval(sendHeartbeat, 1000);
+    }
+
+    function sendHeartbeat() {
+      if (isKickedOut) return;
+
+      var state = {
+        inRoom: currentRoomId !== null,
+        roomId: currentRoomId,
+        currentTimerSec: studySeconds,
+        studyingSec: 0
+      };
+
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.error === "SESSION_EXPIRED") {
+          if (!isKickedOut) {
+            isKickedOut = true;
+            logout();
+            showAppPopup("เซสชันซ้ำ", "รหัสนิสิตนี้มีการเข้าสู่ระบบจากเครื่องอื่น ระบบจึงทำการออกจากระบบเครื่องนี้โดยอัตโนมัติ", "warning");
+          }
+          return;
+        }
+        if (res) {
+          var counter = document.getElementById('onlineCounter');
+          if (counter) counter.innerText = (res.onlineCount || 0) + " คนกำลังอ่าน";
+          
+          if (currentRoomId) {
+            renderVirtualTable(res.roomMembers || []);
+          }
+
+          if (hasChatFeature) renderChats(res.chats);
+
+          if (res.latestNotif && Number(res.latestNotif.timestamp) > lastNotifTimestamp) {
+            lastNotifTimestamp = Number(res.latestNotif.timestamp);
+            
+            document.getElementById('notifBadge').classList.remove('hidden');
+            document.getElementById('notifDot').classList.remove('hidden');
+            
+            loadNewsData();
+            loadSheetsData();
+            loadCalendarEvents();
+          }
+        }
+      }).updateHeartbeat(currentStudentId, currentSessionToken, state, lastNotifTimestamp);
+    }
+
+    function renderVirtualTable(members) {
+      var grid = document.getElementById('virtualTableGrid');
+      var badge = document.getElementById('roomUsersBadge');
+      if (!grid) return;
+
+      if (badge) badge.innerText = (members ? members.length : 0) + " คนที่โต๊ะนี้";
+
+      grid.innerHTML = '';
+      if (!members || members.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-6 text-center text-slate-500 text-xs">ยังไม่มีเพื่อนคนอื่นที่โต๊ะนี้ เป็นคนแรกที่เข้ามาเริ่มอ่านเลย!</div>';
+        return;
+      }
+
+      members.forEach(function(u) {
+        var prof = u.profile || {};
+        var name = prof.displayName || ("นิสิต " + u.studentId);
+        var avatar = prof.avatarUrl || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+        
+        var userSec = (u.studentId === currentStudentId) ? studySeconds : (u.studySeconds || 0);
+        var timeText = formatSecsToTime(userSec);
+
+        var card = document.createElement('div');
+        card.className = "bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 sm:p-3 flex items-center space-x-2.5 sm:space-x-3 shadow-md hover:border-brand-orange/50 transition";
+        card.innerHTML = 
+          '<div class="relative shrink-0">' +
+            '<img src="' + avatar + '" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-700">' +
+            '<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full animate-pulse"></span>' +
+          '</div>' +
+          '<div class="min-w-0 flex-1">' +
+            '<h5 class="text-[11px] sm:text-xs font-bold text-white truncate">' + escapeHtml(name) + '</h5>' +
+            '<p class="text-[9px] sm:text-[10px] text-amber-400 font-mono font-semibold flex items-center space-x-1 mt-0.5">' +
+              '<i class="fa-solid fa-stopwatch text-[8px]"></i>' +
+              '<span>กำลังอ่าน: ' + timeText + '</span>' +
+            '</p>' +
+          '</div>';
+
+        grid.appendChild(card);
+      });
+    }
+
+    function sendChat(e) {
+      e.preventDefault();
+      var input = document.getElementById('chatInput');
+      var msg = input.value.trim();
+      if (!msg) return;
+
+      input.value = '';
+      google.script.run.withSuccessHandler(function() { sendHeartbeat(); })
+        .sendChatMessage(currentStudentId, currentSessionToken, currentRoomId, msg);
+    }
+
+    function renderChats(chats) {
+      var box = document.getElementById('chatMessages');
+      if (!box) return;
+      box.innerHTML = '';
+      (chats || []).forEach(function(c) {
+        var item = document.createElement('div');
+        item.className = "bg-slate-900/60 p-2 sm:p-2.5 rounded-2xl border border-slate-700/40 text-[11px] sm:text-sm";
+        item.innerHTML = '<span class="text-brand-orange font-bold">' + escapeHtml(c.displayName) + ':</span> <span>' + escapeHtml(c.message) + '</span> <span class="text-[9px] sm:text-[10px] text-slate-500 float-right mt-0.5">' + escapeHtml(c.timestamp) + '</span>';
+        box.appendChild(item);
+      });
+    }
+
+    function loadLeaderboard() {
+      var filterElem = document.getElementById('leaderboardFilter');
+      var type = filterElem ? filterElem.value : 'today';
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.leaderboard) {
+          var list = document.getElementById('leaderboardList');
+          if (!list) return;
+          list.innerHTML = '';
+          
+          res.leaderboard.forEach(function(item, idx) {
+            var row = document.createElement('div');
+            row.className = "flex justify-between items-center bg-slate-900/80 p-2.5 sm:p-4 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition";
+            var hrs = (item.totalSeconds / 3600).toFixed(1);
+            
+            var rankBadge = '#' + (idx + 1);
+            if (idx === 0) rankBadge = '🥇';
+            else if (idx === 1) rankBadge = '🥈';
+            else if (idx === 2) rankBadge = '🥉';
+
+            row.innerHTML = '<div class="flex items-center space-x-2.5 sm:space-x-3">' +
+              '<span class="font-bold text-xs sm:text-base w-5 text-center">' + rankBadge + '</span>' +
+              '<img src="' + item.avatarUrl + '" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-700">' +
+              '<div>' +
+                '<h5 class="text-[11px] sm:text-sm font-bold text-white">' + escapeHtml(item.displayName) + '</h5>' +
+                '<p class="text-[9px] sm:text-xs text-slate-400 font-mono">' + escapeHtml(item.studentId) + '</p>' +
+              '</div>' +
+              '</div>' +
+              '<span class="text-[11px] sm:text-sm font-bold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-emerald-500/20">' + hrs + ' ชม.</span>';
+            list.appendChild(row);
+          });
+        }
+      }).getLeaderboardData(currentStudentId, currentSessionToken, type);
+    }
+
+    function loadSheetsData() {
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.data) {
+          sheetsData = res.data;
+          renderSheets(sheetsData);
+          renderDailySheets(sheetsData);
+        }
+      }).getSheetsData(currentStudentId, currentSessionToken);
+    }
+
+    function renderSheets(data) {
+      var container = document.getElementById('allSheetsGrid');
+      if (!container) return;
+      container.innerHTML = '';
+      (data || []).forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between cursor-pointer hover:border-brand-orange transition relative group";
+        
+        var adminControls = '';
+        if (isAdminUser) {
+          adminControls = '<div class="flex space-x-2 mr-2" onclick="event.stopPropagation()">' +
+            '<button onclick="editSheet(' + item.rowId + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
+            '<button onclick="deleteSheetItem(' + item.rowId + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
+            '</div>';
+        }
+
+        card.innerHTML = '<div onclick="openViewer(\'' + escapeHtml(item.title) + '\', \'' + item.url + '\')">' +
+          '<div class="flex justify-between items-start mb-2">' +
+          '<span class="bg-orange-500/20 text-brand-orange text-[9px] sm:text-xs font-semibold px-2 py-0.5 rounded-full">' + escapeHtml(item.subject) + '</span>' +
+          '<div class="flex items-center">' + adminControls + '<span class="text-[9px] sm:text-xs text-slate-400">' + escapeHtml(item.year) + ' ' + escapeHtml(item.semester) + '</span></div>' +
+          '</div>' +
+          '<h4 class="font-bold text-white text-xs sm:text-base line-clamp-2">' + escapeHtml(item.title) + '</h4>' +
+          '</div>' +
+          '<div class="mt-3 pt-2.5 border-t border-slate-700/50 flex justify-between items-center text-[10px] sm:text-xs text-slate-400" onclick="openViewer(\'' + escapeHtml(item.title) + '\', \'' + item.url + '\')">' +
+          '<span>คลิกเพื่ออ่านเอกสาร</span><i class="fa-solid fa-chevron-right text-xs"></i></div>';
+        container.appendChild(card);
+      });
+    }
+
+    function renderDailySheets(data) {
+      var container = document.getElementById('dailySheetsGrid');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!data || data.length === 0) return;
+
+      var shuffled = [...data].sort(function() { return 0.5 - Math.random(); }).slice(0, 2);
+      shuffled.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-3.5 sm:p-4 flex justify-between items-center cursor-pointer hover:border-brand-orange transition";
+        card.onclick = function() { openViewer(item.title, item.url); };
+        card.innerHTML = '<div>' +
+          '<span class="text-[9px] sm:text-xs text-brand-orange font-bold">' + escapeHtml(item.subject) + '</span>' +
+          '<h4 class="font-bold text-white text-xs sm:text-base line-clamp-1">' + escapeHtml(item.title) + '</h4>' +
+          '</div>' +
+          '<i class="fa-solid fa-circle-play text-brand-orange text-xl sm:text-3xl"></i>';
+        container.appendChild(card);
+      });
+    }
+
+    function loadDailySheets() {
+      if (sheetsData && sheetsData.length > 0) {
+        renderDailySheets(sheetsData);
+      } else {
+        loadSheetsData();
+      }
+    }
+
+    function openAddSheetModal() {
+      showAdminModal("อัปโหลดชีทเรียนใหม่", 
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">ชั้นปี</label><select id="popSheetYear" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"><option value="ปี 1">ปี 1</option><option value="ปี 2">ปี 2</option><option value="ปี 3">ปี 3</option><option value="ปี 4">ปี 4</option></select></div>' +
+        '<div><label class="text-slate-400">ภาคเรียน</label><select id="popSheetSem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"><option value="เทอม 1">เทอม 1</option><option value="เทอม 2">เทอม 2</option><option value="ภาคฤดูร้อน">ภาคฤดูร้อน</option></select></div>' +
+        '</div>' +
+        '<div><label class="text-slate-400">ชื่อวิชา / รหัสวิชา</label><input type="text" id="popSheetSub" placeholder="เช่น Anatomy" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">ชื่อชีทสรุป</label><input type="text" id="popSheetTitle" placeholder="เช่น สรุปบทที่ 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เลือกไฟล์เอกสาร (PDF หรือ รูปภาพ)</label><input type="file" id="popSheetFile" accept=".pdf,image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-300 mt-1"></div>' +
+        '<div class="flex items-center space-x-2 pt-1"><input type="checkbox" id="popSheetRec"><label for="popSheetRec" class="text-slate-300">ตั้งเป็นชีทแนะนำ</label></div>',
+        function() {
+          var year = document.getElementById('popSheetYear').value;
+          var sem = document.getElementById('popSheetSem').value;
+          var sub = document.getElementById('popSheetSub').value.trim();
+          var title = document.getElementById('popSheetTitle').value.trim();
+          var fileInput = document.getElementById('popSheetFile');
+          var rec = document.getElementById('popSheetRec').checked;
+
+          if (!sub || !title || !fileInput.files[0]) {
+            showAppPopup("ข้อมูลไม่ครบถ้วน", "กรุณากรอกข้อมูลและแนบไฟล์ให้ครบถ้วน", "warning");
+            return;
+          }
+
+          var file = fileInput.files[0];
+          var reader = new FileReader();
+          reader.onload = function(evt) {
+            var fileData = { fileName: file.name, mimeType: file.type, data: evt.target.result };
+            google.script.run.withSuccessHandler(function(res) {
+              if (res && res.data) {
+                sheetsData = res.data;
+                renderSheets(sheetsData);
+              }
+              closeAdminModal();
+              showAppPopup("สำเร็จ", "อัปโหลดชีทเรียนเรียบร้อยแล้ว", "success");
+            }).uploadAndSaveSheet(currentStudentId, currentSessionToken, title, sub, year, sem, fileData, rec);
+          };
+          reader.readAsDataURL(file);
+        }
+      );
+    }
+
+    function editSheet(rowId) {
+      var item = sheetsData.find(function(s) { return s.rowId === rowId; });
+      if (!item) return;
+
+      showAdminModal("แก้ไขข้อมูลชีทเรียน", 
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><label class="text-slate-400">ชั้นปี</label><select id="popSheetYear" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"><option value="ปี 1" ' + (item.year==='ปี 1'?'selected':'') + '>ปี 1</option><option value="ปี 2" ' + (item.year==='ปี 2'?'selected':'') + '>ปี 2</option><option value="ปี 3" ' + (item.year==='ปี 3'?'selected':'') + '>ปี 3</option><option value="ปี 4" ' + (item.year==='ปี 4'?'selected':'') + '>ปี 4</option></select></div>' +
+        '<div><label class="text-slate-400">ภาคเรียน</label><select id="popSheetSem" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"><option value="เทอม 1" ' + (item.semester==='เทอม 1'?'selected':'') + '>เทอม 1</option><option value="เทอม 2" ' + (item.semester==='เทอม 2'?'selected':'') + '>เทอม 2</option><option value="ภาคฤดูร้อน" ' + (item.semester==='ภาคฤดูร้อน'?'selected':'') + '>ภาคฤดูร้อน</option></select></div>' +
+        '</div>' +
+        '<div><label class="text-slate-400">ชื่อวิชา / รหัสวิชา</label><input type="text" id="popSheetSub" value="' + escapeHtml(item.subject) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">ชื่อชีทสรุป</label><input type="text" id="popSheetTitle" value="' + escapeHtml(item.title) + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white mt-1"></div>' +
+        '<div><label class="text-slate-400">เปลี่ยนไฟล์ใหม่ (ถ้ามี)</label><input type="file" id="popSheetFile" accept=".pdf,image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-300 mt-1"></div>' +
+        '<div class="flex items-center space-x-2 pt-1"><input type="checkbox" id="popSheetRec" ' + (item.recommended?'checked':'') + '><label for="popSheetRec" class="text-slate-300">ตั้งเป็นชีทแนะนำ</label></div>',
+        function() {
+          var year = document.getElementById('popSheetYear').value;
+          var sem = document.getElementById('popSheetSem').value;
+          var sub = document.getElementById('popSheetSub').value.trim();
+          var title = document.getElementById('popSheetTitle').value.trim();
+          var fileInput = document.getElementById('popSheetFile');
+          var rec = document.getElementById('popSheetRec').checked;
+          var file = fileInput.files[0];
+
+          var sendUpdate = function(fileData) {
+            google.script.run.withSuccessHandler(function(res) {
+              if (res && res.data) {
+                sheetsData = res.data;
+                renderSheets(sheetsData);
+              }
+              closeAdminModal();
+              showAppPopup("สำเร็จ", "แก้ไขข้อมูลชีทเรียนเรียบร้อยแล้ว", "success");
+            }).updateSheetData(currentStudentId, currentSessionToken, rowId, title, sub, year, sem, rec, fileData);
+          };
+
+          if (file) {
+            var reader = new FileReader();
+            reader.onload = function(evt) { sendUpdate({ fileName: file.name, mimeType: file.type, data: evt.target.result }); };
+            reader.readAsDataURL(file);
+          } else {
+            sendUpdate(null);
+          }
+        }
+      );
+    }
+
+    function deleteSheetItem(rowId) {
+      showAppConfirm("ยืนยันการลบ", "คุณต้องการลบชีทสรุปนี้ใช่หรือไม่?", function() {
+        google.script.run.withSuccessHandler(function(res) {
+          if (res && res.data) {
+            sheetsData = res.data;
+            renderSheets(sheetsData);
+          }
+          showAppPopup("สำเร็จ", "ลบชีทสรุปเรียบร้อยแล้ว", "success");
+        }).deleteSheet(currentStudentId, currentSessionToken, rowId);
+      });
+    }
+
+    function filterSheets() {
+      var selectedYear = document.getElementById('filterYear').value;
+      var selectedSemester = document.getElementById('filterSemester').value;
+      var keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      var filtered = sheetsData.filter(function(item) {
+        var matchYear = !selectedYear || item.year === selectedYear;
+        var matchSemester = !selectedSemester || item.semester === selectedSemester;
+        var matchKeyword = !keyword || 
+          item.title.toLowerCase().includes(keyword) || 
+          item.subject.toLowerCase().includes(keyword);
+
+        return matchYear && matchSemester && matchKeyword;
+      });
+
+      renderSheets(filtered);
+    }
+
+    function openViewer(title, url) {
+      document.getElementById('viewerTitle').innerText = title;
+      var secureUrl = url;
+      if (secureUrl.indexOf('#') === -1) {
+        secureUrl += '#toolbar=0&navpanes=0&scrollbar=0';
+      }
+      document.getElementById('pdfFrame').src = secureUrl;
+      document.getElementById('viewerModal').classList.remove('hidden');
+    }
+
+    function closeViewer() {
+      document.getElementById('viewerModal').classList.add('hidden');
+      document.getElementById('pdfFrame').src = '';
+    }
+
+    function openContactModal() {
+      selectContactTab('chair');
+      document.getElementById('contactModal').classList.remove('hidden');
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.add('hidden');
+    }
+
+    function selectContactTab(tab) {
+      var btnChair = document.getElementById('cTabChair');
+      var btnDegree = document.getElementById('cTabDegree');
+      var btnFaculty = document.getElementById('cTabFaculty');
+      var btnNu = document.getElementById('cTabNu');
+      var box = document.getElementById('contactContent');
+
+      [btnChair, btnDegree, btnFaculty, btnNu].forEach(function(btn) {
+        if (btn) btn.className = "bg-slate-700 text-slate-300 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold";
+      });
+
+      if (tab === 'chair') {
+        btnChair.className = "bg-brand-orange text-white py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold";
+        box.innerHTML = '<div class="bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-700 space-y-1.5">' +
+          '<p class="font-bold text-brand-orange text-xs sm:text-sm mb-2"><i class="fa-solid fa-user-tie mr-2"></i>ประธานสาขาวิทยาศาสตร์การแพทย์</p>' +
+          '<p class="text-slate-200"><strong>ชื่อ:</strong> นางสาวมัชฌิมาย์ ปรีเปรม ( อีฟ )</p>' +
+          '<p class="text-slate-200"><strong>เบอร์โทร:</strong> 093-257-2117</p>' +
+          '<p class="text-slate-200"><strong>อีเมล:</strong> matthaimap69@nu.ac.th</p>' +
+          '<p class="text-slate-200"><strong>ไลน์ (LINE):</strong> mp15eve</p>' +
+          '<p class="text-slate-200"><strong>ไอจี (IG):</strong> eve.m.p</p>' +
+          '<p class="text-slate-200"><strong>เฟสบุ๊ก:</strong> machchima preeprem</p>' +
+          '</div>';
+      } else if (tab === 'degree') {
+        btnDegree.className = "bg-brand-orange text-white py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold";
+        box.innerHTML = '<div class="bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-700 space-y-1.5">' +
+          '<p class="font-bold text-brand-orange text-xs sm:text-sm mb-2"><i class="fa-solid fa-graduation-cap mr-2"></i>สาขาวิทยาศาสตร์การแพทย์ (ปริญญาตรีต่อเนื่องปริญญาโท)</p>' +
+          '<p class="text-slate-200"><strong>เบอร์โทร:</strong> 055-964-700 ต่อ 4700</p>' +
+          '<p class="text-slate-200"><strong>อีเมล:</strong> medsci_degree@nu.ac.th</p>' +
+          '</div>';
+      } else if (tab === 'faculty') {
+        btnFaculty.className = "bg-brand-orange text-white py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold";
+        box.innerHTML = '<div class="bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-700 space-y-1.5">' +
+          '<p class="font-bold text-brand-orange text-xs sm:text-sm mb-2"><i class="fa-solid fa-building-columns mr-2"></i>คณะวิทยาศาสตร์การแพทย์</p>' +
+          '<p class="text-slate-200"><strong>เบอร์โทร:</strong> 055-964-700</p>' +
+          '<p class="text-slate-200"><strong>อีเมล:</strong> medsci@nu.ac.th</p>' +
+          '<p class="text-slate-200"><strong>สถานที่ตั้ง:</strong> คณะวิทยาศาสตร์การแพทย์ มหาวิทยาลัยนเรศวร ต.ท่าโพธิ์ อ.เมือง จ.พิษณุโลก 65000</p>' +
+          '</div>';
+      } else if (tab === 'nu') {
+        btnNu.className = "bg-brand-orange text-white py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold";
+        box.innerHTML = '<div class="bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-700 space-y-1.5">' +
+          '<p class="font-bold text-brand-orange text-xs sm:text-sm mb-2"><i class="fa-solid fa-university mr-2"></i>มหาวิทยาลัยนเรศวร</p>' +
+          '<p class="text-slate-200"><strong>เบอร์โทร:</strong> 055-961-000</p>' +
+          '<p class="text-slate-200"><strong>อีเมล:</strong> naresuan@nu.ac.th</p>' +
+          '<p class="text-slate-200"><strong>สถานที่ตั้ง:</strong> 99 หมู่ 9 ต.ท่าโพธิ์ อ.เมือง จ.พิษณุโลก 65000</p>' +
+          '</div>';
+      }
+    }
+
+    function showAppConfirm(title, message, onConfirm) {
+      document.getElementById('confirmTitle').innerText = title;
+      document.getElementById('confirmMessage').innerText = message;
+      var okBtn = document.getElementById('confirmOkBtn');
+      okBtn.onclick = function() {
+        closeConfirmModal();
+        if (onConfirm) onConfirm();
+      };
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function showAppPopup(title, message, type) {
+      document.getElementById('confirmTitle').innerText = title;
+      document.getElementById('confirmMessage').innerText = message;
+      
+      var iconBox = document.getElementById('confirmIcon');
+      if (type === 'success') {
+        iconBox.className = "w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-lg sm:text-xl";
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else if (type === 'warning' || type === 'error') {
+        iconBox.className = "w-10 h-10 sm:w-12 sm:h-12 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto text-lg sm:text-xl";
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+      } else {
+        iconBox.className = "w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/20 text-brand-orange rounded-full flex items-center justify-center mx-auto text-lg sm:text-xl";
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+      }
+
+      var cancelBtn = document.getElementById('confirmCancelBtn');
+      cancelBtn.classList.add('hidden');
+      
+      var okBtn = document.getElementById('confirmOkBtn');
+      okBtn.innerText = "ตกลง";
+      okBtn.onclick = function() {
+        closeConfirmModal();
+        cancelBtn.classList.remove('hidden');
+      };
+
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function showAdminModal(title, bodyHtml, submitCallback) {
+      document.getElementById('adminModalTitle').innerText = title;
+      document.getElementById('adminModalBody').innerHTML = bodyHtml;
+      var submitBtn = document.getElementById('adminModalSubmitBtn');
+      submitBtn.onclick = submitCallback;
+      document.getElementById('adminModal').classList.add('hidden');
+      document.getElementById('adminModal').classList.remove('hidden');
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    function previewAvatar(e) {
+      var file = e.target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(ev) { document.getElementById('settingAvatarPreview').src = ev.target.result; };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleSaveProfile(e) {
+      e.preventDefault();
+      var name = document.getElementById('settingDisplayName').value.trim();
+      var fileInput = document.getElementById('avatarFileInput');
+      var file = fileInput.files[0];
+
+      if (!name) return;
+
+      showAppConfirm("ยืนยันการเปลี่ยนโปรไฟล์", "คุณต้องการบันทึกการเปลี่ยนแปลงชื่อและรูปโปรไฟล์ใช่หรือไม่?", function() {
+        var save = function(avatarData) {
+          google.script.run.withSuccessHandler(function(newProf) {
+            userProfile = newProf;
+            updateHeaderProfile();
+            showAppPopup("สำเร็จ", "บันทึกการเปลี่ยนแปลงโปรไฟล์เรียบร้อยแล้ว", "success");
+          }).updateProfile(currentStudentId, currentSessionToken, name, avatarData);
+        };
+
+        if (file) {
+          var reader = new FileReader();
+          reader.onload = function(ev) { save({ fileName: file.name, mimeType: file.type, data: ev.target.result }); };
+          reader.readAsDataURL(file);
+        } else {
+          save(null);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
